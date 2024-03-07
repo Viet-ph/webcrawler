@@ -1,5 +1,5 @@
 const {crawPage} = require("./craw")
-
+const {printReport} = require("./report")
 async function main(){
     let argc = process.argv.length
     if (argc != 3) {
@@ -8,9 +8,7 @@ async function main(){
     }
     const url = process.argv[2]
     const pages = await crawPage(url, url, {})
-    for (const page of Object.entries(pages)) {
-        console.log(page)
-    }
+    printReport(pages)
 }
 
 main()
