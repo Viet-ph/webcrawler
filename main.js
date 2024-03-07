@@ -7,8 +7,10 @@ async function main(){
         process.exit(1)
     }
     const url = process.argv[2]
-    console.log("Start crawling...")
-    crawPage(url)
+    const pages = await crawPage(url, url, {})
+    for (const page of Object.entries(pages)) {
+        console.log(page)
+    }
 }
 
 main()

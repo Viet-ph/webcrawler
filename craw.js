@@ -21,7 +21,7 @@ function getURLsFromHTML(htmlBody, baseURL){
                 let urlObj = new URL(`${baseURL}${element.href}`)
                 urls.push(urlObj.href)
             } catch (error) {
-                console.log(`Error with relative url: ${error.message}`)
+                console.log(`Error with relative url: ${error.message}, ${element}`)
             }
             
         else
@@ -37,24 +37,45 @@ function getURLsFromHTML(htmlBody, baseURL){
 }
 
 async function crawPage(baseURL, currentURL, pages){
+    const baseURLObj = new URL(baseURL)
+    const currentURLObj = new URL(currentURL)
+
+    if (baseURLObj.hostname !== currentURLObj.hostname){
+        return 
+    }
+
+    const normalizedCurrentURL = normalizeUrl(currentURL)
+    if (pages[normalizedCurrentURL] > 0){
+        pages[normalizedCurrentURL] ++
+        return 
+    }
+
+    pages[normalizedCurrentURL] = 1
+
+    console.log(`Actively crawling ${currentURL}`)
     try {
-        const resp = await fetch(url)
+        const resp = await fetch(currentURL)
         const contentType = resp.headers.get("content-type")
         const statusCode = resp.status
         if (!contentType.includes("text/html")) {
             console.log("Content type not text/html")
-            return
+            return pages
         } else if (!resp.ok){
             console.log("HTTP status " + resp.status)
-            return
+            return pages
         } else{
             const html = await resp.text()
-            console.log(html)
+            const URLs = getURLsFromHTML(html, baseURL)
+            for (const url of URLs) {
+                await crawPage(baseURL, url, pages)
+            }
         }
         
     } catch (error) {
-        console.log("Error occured: ", error.message)
+        console.log(`Error occured: ${error.message}, url: ${currentURL}`)
     }
+
+    return pages
 }
 
 module.exports = {
